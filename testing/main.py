@@ -21,6 +21,7 @@ data_loader = torch.utils.data.DataLoader(
   shuffle=False,
   num_workers=1
 )
+print('Finish load images')
 
 classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
 
@@ -56,6 +57,8 @@ nets = {
     'wide_resnet': wide_resnet
 }
 net_names = ('vgg16', 'densenet', 'wide_resnet')
+
+print('Finish load models')
 
 # 検知開始
 for net_name in net_names:

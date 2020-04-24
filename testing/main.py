@@ -2,21 +2,18 @@ import torch
 import torchvision
 from torchvision import transforms
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 # データの読み込み
 transform = transforms.Compose(
   [transforms.Resize((300, 300)),
    transforms.ToTensor(),
    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
-
 data_set = torchvision.datasets.ImageFolder(
   root='./images',
   transform=transform
 )
-
-# for i in range(len(data_set)):
-#   print(data_set.__getitem__(i)[0].shape, data_set.__getitem__(i)[1])
-
 data_loader = torch.utils.data.DataLoader(
   data_set,
   batch_size=1,
@@ -30,37 +27,51 @@ classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', '
 from torch import nn
 from torchvision import models
 
-net = models.vgg16()
-last_in_features = net.classifier[6].in_features
-net.classifier[6] = nn.Linear(last_in_features, 10)
-model = torch.load('./models/vgg16_net_gpu.pth', map_location='cpu')
-# model = torch.load('./models/vgg16_net_gpu.pth')
+vgg16 = models.vgg16()
+last_in_features = vgg16.classifier[6].in_features
+vgg16.classifier[6] = nn.Linear(last_in_features, 10)
+vgg16 = vgg16.to(device)
+state_dict = torch.load('./models/vgg16.pth', map_location=device)
+vgg16.load_state_dict(state_dict)
 
-# net = models.densenet161()
-# last_in_features = net.classifier.in_features
-# net.classifier = nn.Linear(last_in_features, 10)
-# model = torch.load('./models/dense_net_gpu.pth', map_location='cpu')
-# model = torch.load('./models/vgg16_net_gpu.pth')
+densenet = models.densenet161()
+last_in_features = densenet.classifier.in_features
+densenet.classifier = nn.Linear(last_in_features, 10)
+densenet = densenet.to(device)
+state_dict = torch.load('./models/densenet.pth', map_location=device)
+densenet.load_state_dict(state_dict)
 
-# net = models.wide_resnet50_2()
-# last_in_features = net.fc.in_features
-# net.fc = nn.Linear(last_in_features, 10)
-# model = torch.load('./models/wide_resnet_gpu.pth', map_location='cpu')
-# model = torch.load('./models/vgg16_net_gpu.pth')
+wide_resnet = models.wide_resnet50_2()
+last_in_features = wide_resnet.fc.in_features
+wide_resnet.fc = nn.Linear(last_in_features, 10)
+wide_resnet = wide_resnet.to(device)
+state_dict = torch.load('./models/wide_resnet.pth', map_location=device)
+wide_resnet.load_state_dict(state_dict)
 
-net.load_state_dict(model)
+nets = {
+    'vgg16': vgg16,
+    'densenet': densenet,
+    'wide_resnet': wide_resnet
+}
+net_names = ('vgg16', 'densenet', 'wide_resnet')
 
 # 検知開始
-net.eval()
+for net_name in net_names:
+  nets[net_name].eval()
 
 class_correct = list(0. for i in range(10))
 class_total = list(0. for i in range(10))
 
 with torch.no_grad():
   for (inputs, label) in data_loader:
+    inputs = inputs.to(device)
+    label = label.to(device)
 
-    outputs = net(inputs)
-    
+    outputs = torch.zeros([1, 10])
+    outputs = outputs.to(device)
+    for net_name in net_names:
+      outputs += nets[net_name](inputs)
+
     _, predicted = torch.max(outputs, 1)
     is_correct = (predicted == label)
 

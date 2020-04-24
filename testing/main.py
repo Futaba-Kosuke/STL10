@@ -33,7 +33,20 @@ from torchvision import models
 net = models.vgg16()
 last_in_features = net.classifier[6].in_features
 net.classifier[6] = nn.Linear(last_in_features, 10)
-model = torch.load('./models/vgg16_net_cpu.pth')
+model = torch.load('./models/vgg16_net_gpu.pth', map_location='cpu')
+# model = torch.load('./models/vgg16_net_gpu.pth')
+
+# net = models.densenet161()
+# last_in_features = net.classifier.in_features
+# net.classifier = nn.Linear(last_in_features, 10)
+# model = torch.load('./models/dense_net_gpu.pth', map_location='cpu')
+# model = torch.load('./models/vgg16_net_gpu.pth')
+
+# net = models.wide_resnet50_2()
+# last_in_features = net.fc.in_features
+# net.fc = nn.Linear(last_in_features, 10)
+# model = torch.load('./models/wide_resnet_gpu.pth', map_location='cpu')
+# model = torch.load('./models/vgg16_net_gpu.pth')
 
 net.load_state_dict(model)
 

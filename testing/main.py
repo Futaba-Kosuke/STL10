@@ -2,6 +2,7 @@ import torch
 import torchvision
 from torchvision import transforms
 
+# GPUの確認
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # データの読み込み
@@ -24,6 +25,7 @@ data_loader = torch.utils.data.DataLoader(
 classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
 
 # モデルの読み込み
+# アンサンブル学習を行う為、複数のモデルを読み込む
 from torch import nn
 from torchvision import models
 
@@ -69,18 +71,22 @@ with torch.no_grad():
 
     outputs = torch.zeros([1, 10])
     outputs = outputs.to(device)
+    # アンサンブル学習
     for net_name in net_names:
       outputs += nets[net_name](inputs)
 
     _, predicted = torch.max(outputs, 1)
     is_correct = (predicted == label)
 
+    # 各クラスの枚数をカウント
     class_total[label] += 1
     if is_correct:
+      # 各クラスの正解数をカウント
       class_correct[label] += 1
 
+# 正解率の出力
 for i in range(10):
   print('Accuracy of %5s : %02.01f %%' % (
     classes[i], 100 * class_correct[i] / class_total[i]))
   
-print('\nAccuracy Top-1: %02.01f %%' % (100 * sum(class_correct) / sum(class_total)))
+print('\nTop-1 Accuracy: %02.01f %%' % (100 * sum(class_correct) / sum(class_total)))

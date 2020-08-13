@@ -1,5 +1,6 @@
-images_train/
-images/
+training/images_train/
+training/images/
+testing/images/
 
 .DS_store
 *.pth
